@@ -6,10 +6,14 @@ on:
   pull_request:
     branches: [ "main" ]
 
+permissions:
+  contents: read
+
 jobs:
   test-and-build:
     name: Run Go Tests & RDD Validation
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout Repository
@@ -18,10 +22,19 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
+          go-version: '1.23'
+          cache: false   # re-habilitar cuando exista go.sum con dependencias reales
+
+      - name: Verify Module Layout
+        run: |
+          test -f go.mod || { echo "::error::go.mod no encontrado en la raíz"; exit 1; }
+          go version
 
       - name: Run Unit Tests
         run: go test -v ./pkg/triage/...
 
+      - name: Static Analysis (vet)
+        run: go vet ./pkg/triage/...
+
       - name: Build Core Engine
-        run: go build -v ./pkg/triage/...
+        run: go build ./pkg/triage/...
