@@ -1,3 +1,3 @@
-module gentle-care
+module github.com/Barto912/gentle-care
 
-go 1.22
+go 1.23
